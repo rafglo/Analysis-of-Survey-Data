@@ -1,0 +1,149 @@
+---
+title: "Lista1"
+format: html
+---
+
+## Zadanie 1
+
+```{r}
+df <- read.csv("ankieta.csv", sep = ";", fileEncoding = "Windows-1250")
+
+
+summary(df)
+```
+
+```{r}
+str(df)
+```
+
+```{r}
+sum(is.na(df))
+```
+
+## Zadanie 2
+
+```{r}
+df <- df %>% mutate(WIEK_KAT = case_when(
+    WIEK <= 35 ~ "do 35 lat",
+    between(WIEK, 36, 45) ~ "między 36 a 45 lat", 
+    between(WIEK, 46, 55) ~ "między 46 a 55 lat",
+    WIEK > 55 ~ "powyżej 55 lat"
+  ))
+```
+
+## Zadanie 3
+
+```{r}
+lapply(df[c("DZIAŁ", "STAŻ", "CZY_KIER", "PŁEĆ", "WIEK_KAT")], table)
+```
+
+## Zadanie 4
+
+```{r}
+table1 <- table(df$PYT_1)
+pie(table1)
+```
+
+```{r}
+table2 <- table(df$PYT_2)
+pie(table2)
+```
+
+```{r},}
+barplot(table1)
+```
+
+```{r}
+barplot(table2)
+```
+
+ggplot2
+
+```{r}
+table1_df = as.data.frame(table1)
+colnames(table1_df) <- c("Odpowiedz", "Liczba")
+ggplot(table1_df, aes(x="", y=Liczba, fill = Odpowiedz)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") + 
+  labs(title = "Odpowiedzi na PYT_1") +
+  theme_void() + 
+  scale_fill_manual(values = c("lightblue", "pink", "green", "orange", "purple"))
+```
+
+```{r}
+table2_df = as.data.frame(table2)
+colnames(table2_df) <- c("Odpowiedz", "Liczba")
+ggplot(table2_df, aes(x="", y=Liczba, fill = Odpowiedz)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y") + 
+  labs(title = "Odpowiedzi na PYT_2") +
+  theme_void() + 
+  scale_fill_manual(values = c("lightblue", "pink", "green", "orange", "purple"))
+```
+
+```{r}
+ggplot(df, aes(x = as.factor(PYT_1), fill = as.factor(PYT_1))) +
+  geom_bar() +
+  labs(title = "Odpowiedzi na PYT_1",
+       x = "Odpowiedz",
+       y = "Liczba odpowiedzi",
+       fill = "Odpowiedzi") +
+  scale_fill_manual(values = c("lightblue", "pink", "green", "orange", "purple")) +
+  theme_minimal()
+```
+
+```{r}
+ggplot(df, aes(x = as.factor(PYT_2), fill = as.factor(PYT_2))) +
+  geom_bar() +
+  labs(title = "Odpowiedzi na PYT_2",
+       x = "Odpowiedz",
+       y = "Liczba odpowiedzi",
+       fill = "Odpowiedzi") +
+  scale_fill_manual(values = c("lightblue", "pink", "green", "orange", "purple")) +
+  theme_minimal()
+```
+
+## Zadanie 5
+
+```{r}
+pyt1_dzial_df <- data.frame("DZIAŁ" = df$DZIAŁ, "PYT_1" = df$PYT_1)
+table(pyt1_dzial_df)
+```
+
+```{r}
+pyt1_staz_df <- data.frame("STAŻ" = df$STAŻ, "PYT_1" = df$PYT_1)
+table(pyt1_staz_df)
+```
+
+```{r}
+pyt1_czykier_df <- data.frame("CZY_KIER" = df$CZY_KIER, "PYT_1" = df$PYT_1)
+table(pyt1_czykier_df)
+```
+
+```{r}
+pyt1_plec_df <- data.frame("PŁEĆ" = df$PŁEĆ, "PYT_1" = df$PYT_1)
+table(pyt1_plec_df)
+```
+
+```{r}
+pyt1_wiekkat_df <- data.frame("WIEK_KAT" = df$WIEK_KAT, "PYT_1" = df$PYT_1)
+table(pyt1_wiekkat_df)
+```
+
+## Zadanie 6
+
+```{r}
+pyt2_pyt3_df <- data.frame("PYT_2" = df$PYT_2, "PYT_3" = df$PYT_3)
+table(pyt2_pyt3_df)
+```
+
+## Zadanie 7
+
+```{r}
+df <- df %>% mutate(CZY_ZADOW = case_when(
+    PYT_2 <= -1 ~ "Nie",
+    PYT_2 >= 1 ~ "Tak"
+  ))
+```
+
+## Zadanie 8
