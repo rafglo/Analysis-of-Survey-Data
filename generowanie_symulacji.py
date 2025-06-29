@@ -81,18 +81,18 @@ def losuj_probe_zlozona(populacja_df, n_losowanych_komisji, n_wyborcow_w_komisji
 # --- KROK 3: WPROWADZENIE BŁĘDU BRAKU ODPOWIEDZI ---
 def wprowadz_blad_braku_odpowiedzi(proba_df):
     """
-    Symuluje błąd braku odpowiedzi. Wyborcy Partii Trójkątnych
+    Symuluje błąd braku odpowiedzi. Respondenci z grupy 18-29
     znacznie rzadziej zgadzają się na udział w ankiecie.
     """
-    def czy_odpowiedzial(glos):
-        if glos == 'Partia Trójkątnych':
-            # Tylko 40% szans na odpowiedź
+    def czy_odpowiedzial(wiek):
+        if wiek == '18-29':
+            # Tylko 40% szans na odpowiedź wśród młodych
             return np.random.choice([True, False], p=[0.4, 0.6])
         else:
-            # 90% szans na odpowiedź dla pozostałych
+            # 90% szans na odpowiedź dla pozostałych grup wiekowych
             return np.random.choice([True, False], p=[0.9, 0.1])
             
-    proba_df['odpowiedz'] = proba_df['glos'].apply(czy_odpowiedzial)
+    proba_df['odpowiedz'] = proba_df['wiek_grupa'].apply(czy_odpowiedzial)
     
     finalna_proba_df = proba_df[proba_df['odpowiedz'] == True].copy()
     finalna_proba_df.drop(columns=['odpowiedz'], inplace=True)
