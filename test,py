@@ -1,99 +1,62 @@
-import pandas as pd
-import numpy as np
+# Dane dla 1 semestru
+first_semester_courses = {
+    'Pakiety statystyczne': {'waga': 7, 'ocena': 5},
+    'Modelowanie rynków finansowych': {'waga': 5, 'ocena': 5},
+    'Metody numeryczne': {'waga': 5, 'ocena': 5.5},
+    'Komputerowa Analiza Szeregów Czasowych': {'waga': 6, 'ocena': 5},
+    'Procesy Stochastyczne i ich zastosowania': {'waga': 6, 'ocena': 4.5},
+    'Podstawy Zarządzania': {'waga': 1, 'ocena': 5},
+}
 
-# --- PARAMETRY SYMULACJI ---
-N_POPULACJI = 1_000_000
-N_KOMISJI = 500
-N_LOSOWANYCH_KOMISJI = 50
-N_WYBORCOW_W_KOMISJI = 50
-# Używamy Pana/Pani ziarna losowości
-np.random.seed(43)
+# Dane dla 2 semestru
+second_semester_courses = {
+    'Analiza Danych Ankietowych': {'waga': 7, 'ocena': 5.5},  
+    'Matematyka dla przemysłu': {'waga': 3, 'ocena': 5},
+    'Zarządzanie ryzykiem w przemyśle': {'waga': 4, 'ocena': 5},
+    'Bazy danych': {'waga': 3, 'ocena': 5.5},  
+    'Praktyki': {'waga': 13, 'ocena': 5}
+}
 
-# --- DEFINICJE FUNKCJI ---
+# Funkcja obliczająca średnią ważoną
+def calculate_weighted_average(courses):
+    total_weight = 0
+    weighted_sum = 0
+    results = {}
 
-def generuj_populacje(n_populacji, n_komisji):
-    """Tworzy populację wyborców."""
-    print("Krok 1: Generowanie populacji...")
-    rozmiary_komisji = np.random.lognormal(mean=7, sigma=0.5, size=n_komisji).astype(int); rozmiary_komisji = (rozmiary_komisji / rozmiary_komisji.sum() * n_populacji).astype(int); rozmiary_komisji[-1] += n_populacji - rozmiary_komisji.sum()
-    komisja_ids = np.repeat(range(n_komisji), rozmiary_komisji)
-    df = pd.DataFrame({'komisja_id': komisja_ids})
-    df['wiek_grupa'] = np.random.choice(['18-29', '30-49', '50+'], size=n_populacji, p=[0.25, 0.40, 0.35])
-    partie = ['Partia Kwadratowych', 'Partia Okrągłych', 'Partia Trójkątnych']
-    def przypisz_glos(wiek):
-        if wiek == '18-29': return np.random.choice(partie, p=[0.20, 0.30, 0.50])
-        elif wiek == '30-49': return np.random.choice(partie, p=[0.35, 0.45, 0.20])
-        else: return np.random.choice(partie, p=[0.55, 0.35, 0.10])
-    df['glos'] = df['wiek_grupa'].apply(przypisz_glos)
-    print("...Populacja gotowa.\n")
-    return df
+    for course, details in courses.items():
+        waga = details['waga']
+        ocena = details['ocena']
+        
+        results[course] = ocena
+        total_weight += waga
+        weighted_sum += ocena * waga
 
-def losuj_probe_zlozona(populacja_df, n_losowanych_komisji, n_wyborcow_w_komisji):
-    """Pobiera próbę w dwuetapowym losowaniu grupowym."""
-    print("Krok 2: Losowanie próby złożonej...")
-    wylosowane_komisje_ids = np.random.choice(populacja_df['komisja_id'].unique(), size=n_losowanych_komisji, replace=False)
-    fragmenty_proby = []
-    for klaster_id in wylosowane_komisje_ids:
-        wyborcy_w_komisji = populacja_df[populacja_df['komisja_id'] == klaster_id]
-        n_do_wylosowania = min(n_wyborcow_w_komisji, len(wyborcy_w_komisji))
-        probka_z_komisji = wyborcy_w_komisji.sample(n=n_do_wylosowania)
-        fragmenty_proby.append(probka_z_komisji)
-    proba_df = pd.concat(fragmenty_proby)
-    print(f"...Wylosowano próbę idealną o wielkości {len(proba_df)} respondentów.\n")
-    return proba_df
+    weighted_average = weighted_sum / total_weight
+    return weighted_average, results, total_weight
 
-def wprowadz_blad_braku_odpowiedzi(proba_df):
-    """Symuluje błąd braku odpowiedzi."""
-    print("Krok 3: Wprowadzanie błędu braku odpowiedzi...")
-    def czy_odpowiedzial(glos):
-        if glos == 'Partia Trójkątnych': return np.random.choice([True, False], p=[0.2, 0.8])
-        else: return np.random.choice([True, False], p=[0.95, 0.05])
+# Obliczenie średniej ważonej dla obu semestrów
+average_first, course_results_first, total_weight_first = calculate_weighted_average(first_semester_courses)
+average_second, course_results_second, total_weight_second = calculate_weighted_average(second_semester_courses)
 
+# Łączna suma wag
+total_weight_all = total_weight_first + total_weight_second
 
-    proba_df['odpowiedz'] = proba_df['glos'].apply(czy_odpowiedzial)
-    finalna_proba_df = proba_df[proba_df['odpowiedz'] == True].copy()
-    finalna_proba_df.drop(columns=['odpowiedz'], inplace=True)
-    print(f"...Po uwzględnieniu odmów, finalna próba ma {len(finalna_proba_df)} respondentów.\n")
-    return finalna_proba_df
+# Łączna średnia ważona
+total_weighted_sum = sum([details['ocena'] * details['waga'] for details in first_semester_courses.values()]) + \
+                     sum([details['ocena'] * details['waga'] for details in second_semester_courses.values()])
+
+total_weighted_average = total_weighted_sum / total_weight_all
+
+# Średnia arytmetyczna z dwóch semestrów
+arithmetic_average = (average_first + average_second) / 2
 
 
-# ==============================================================================
-# --- LINIOWE WYKONANIE SKRYPTU (BEZ IF __NAME__ == '__MAIN__') ---
-# ==============================================================================
+print(f"\nŚrednia ważona (1 semestr): {average_first:.2f}")
+print(f"Suma wag (1 semestr): {total_weight_first}")
 
-# 1. GENEROWANIE DANYCH
-populacja = generuj_populacje(N_POPULACJI, N_KOMISJI)
-idealna_proba = losuj_probe_zlozona(populacja, N_LOSOWANYCH_KOMISJI, N_WYBORCOW_W_KOMISJI)
-# Używamy .copy(), aby mieć pewność, że funkcja nie modyfikuje oryginalnej "idealnej próby"
-finalna_proba_z_bledem = wprowadz_blad_braku_odpowiedzi(idealna_proba.copy())
+print(f"\nŚrednia ważona (2 semestr): {average_second:.2f}")
+print(f"Suma wag (2 semestr): {total_weight_second}")
 
-# 2. PROCES WAŻENIA
-print("Krok 4: Proces ważenia danych...")
-pop_proporcje_wieku = populacja['wiek_grupa'].value_counts(normalize=True)
-proba_proporcje_wieku = finalna_proba_z_bledem['wiek_grupa'].value_counts(normalize=True)
-wagi_mapa = pop_proporcje_wieku / proba_proporcje_wieku
-finalna_proba_z_bledem['waga'] = finalna_proba_z_bledem['wiek_grupa'].map(wagi_mapa)
-print("...Wagi zostały obliczone i dodane do próby.\n")
-
-# --- FINALNA ANALIZA I PORÓWNANIE WYNIKÓW ---
-print("="*50)
-print("PORÓWNANIE WYNIKÓW KOŃCOWYCH (dla seed=43)")
-print("="*50)
-
-# Prawdziwe wyniki
-prawdziwe_wyniki = populacja['glos'].value_counts(normalize=True).sort_index()
-print("1. Prawdziwe wyniki w całej populacji:")
-print(prawdziwe_wyniki.map('{:.2%}'.format))
-print("\n")
-
-# Wyniki surowe
-wyniki_surowe = finalna_proba_z_bledem['glos'].value_counts(normalize=True).sort_index()
-print("2. Wyniki w próbie z błędem (PRZED ważeniem):")
-print(wyniki_surowe.map('{:.2%}'.format))
-print("\n")
-
-# Wyniki ważone
-wyniki_wazone = finalna_proba_z_bledem.groupby('glos')['waga'].sum() / finalna_proba_z_bledem['waga'].sum()
-wyniki_wazone = wyniki_wazone.sort_index()
-print("3. Wyniki w próbie z błędem (PO ważeniu):")
-print(wyniki_wazone.map('{:.2%}'.format))
-print("\n")
+# Wyświetlenie łącznych wyników
+print(f"\nŁączna średnia ważona: {total_weighted_average:.2f}")
+print(f"Łączna suma wag: {total_weight_all}")
